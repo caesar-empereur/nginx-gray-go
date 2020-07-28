@@ -40,9 +40,9 @@ func (this *GrayController) AddOne() {
 	} else {
 		apiResponse.Success = true
 	}
-
+	serviceNode.Join=false
 	orm := orm2.NewOrm()
-	id, err := orm.Insert(serviceNode)
+	id, err := orm.Insert(&serviceNode)
 
 	if err != nil {
 		panic("插入错误")
