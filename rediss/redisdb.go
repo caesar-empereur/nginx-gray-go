@@ -3,7 +3,7 @@ package rediss
 import (
 	"context"
 	"github.com/astaxie/beego"
-	"github.com/go-redis/redis/v8"
+	"github.com/go-redis/redis"
 )
 
 var redisClient *redis.Client
@@ -23,7 +23,7 @@ func GetRedisInstance() *redis.Client {
 		DB:       0,
 	})
 
-	_, err := redisClient.Ping(LocalCtx).Result()
+	_, err := redisClient.Ping().Result()
 	if err != nil {
 		panic("redis 连接出错")
 	}

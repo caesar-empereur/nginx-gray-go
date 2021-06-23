@@ -21,27 +21,27 @@ type NginxGrayController struct {
 	beego.Controller
 }
 
-func (this * NginxGrayController) GetListFromNginx() {
-	var backends= this.GetString("backends")
+func (this *NginxGrayController) GetListFromNginx() {
+	var backends = this.GetString("backends")
 	apiResponse := vo.ApiResponse{}
-	if backends == ""{
-		apiResponse.Success=false
-		apiResponse.Message="参数为空"
+	if backends == "" {
+		apiResponse.Success = false
+		apiResponse.Message = "参数为空"
 	} else {
-		apiResponse.Success=true
+		apiResponse.Success = true
 		nginxRunUrl := beego.AppConfig.String("nginx_run_url")
 		nginxRunUrl = nginxRunUrl + "?upstream=" + backends
 		resp, err := http.Get(nginxRunUrl)
 
 		if err != nil {
-			apiResponse.Success=false
-			apiResponse.Message="内部转发错误" + err.Error()
+			apiResponse.Success = false
+			apiResponse.Message = "内部转发错误" + err.Error()
 		} else {
-			stringResp, err :=ioutil.ReadAll(resp.Body)
+			stringResp, err := ioutil.ReadAll(resp.Body)
 			if err != nil {
 				panic(err.Error())
 			}
-			apiResponse.Message=string(stringResp)
+			apiResponse.Message = string(stringResp)
 			log.Info("nginx 6000 返回的结果 " + string(stringResp))
 		}
 	}
@@ -67,15 +67,15 @@ func (this *NginxGrayController) UpdateOneToNginx() {
 func doOperate(id int, operateType string, this *NginxGrayController) {
 	apiResponse := vo.ApiResponse{}
 	if id == 0 {
-		apiResponse.Success=false
-		apiResponse.Message="id 不能为空"
+		apiResponse.Success = false
+		apiResponse.Message = "id 不能为空"
 	} else {
 		msg, err := writeToNginx(id, operateType)
-		if err != nil || msg == ""{
-			apiResponse.Success=false
-			apiResponse.Message=err.Error()
+		if err != nil || msg == "" {
+			apiResponse.Success = false
+			apiResponse.Message = err.Error()
 		} else {
-			apiResponse.Success=true
+			apiResponse.Success = true
 			apiResponse.Message = msg
 		}
 	}
@@ -104,7 +104,7 @@ func writeToRedis(id int, operateType string) {
 	jsonString, _ := json.Marshal(serviceNodeRedis)
 
 	redisClient := rediss.GetRedisInstance()
-	setErr := redisClient.Set(rediss.LocalCtx, serviceNodeRedis.Domain, string(jsonString), 0).Err()
+	setErr := redisClient.Set(serviceNodeRedis.Domain, string(jsonString), 0).Err()
 	if setErr != nil {
 		panic("redis set 出错")
 	}
@@ -134,9 +134,9 @@ func writeToNginx(id int, operateType string) (string, error) {
 	}
 
 	nginxRunUrl := beego.AppConfig.String("nginx_run_url")
-	nginxRunUrl = nginxRunUrl + "?upstream=" + serviceNode.Zone + "&server=" + serviceNode.Ip + ":"+serviceNode.Port
-	if operateType == models.UPDATE{
-		nginxRunUrl = nginxRunUrl + "&weight="+strconv.Itoa(serviceNode.Weight)
+	nginxRunUrl = nginxRunUrl + "?upstream=" + serviceNode.Zone + "&server=" + serviceNode.Ip + ":" + serviceNode.Port
+	if operateType == models.UPDATE {
+		nginxRunUrl = nginxRunUrl + "&weight=" + strconv.Itoa(serviceNode.Weight)
 	} else {
 		nginxRunUrl = nginxRunUrl + "&" + operateType + "="
 	}
@@ -149,7 +149,7 @@ func writeToNginx(id int, operateType string) (string, error) {
 		return "", errors.New("内部转发错误, " + err.Error())
 	}
 
-	stringResp, err :=ioutil.ReadAll(resp.Body)
+	stringResp, err := ioutil.ReadAll(resp.Body)
 
 	log.Info("nginx 6000 返回的结果 " + string(stringResp))
 
@@ -157,11 +157,11 @@ func writeToNginx(id int, operateType string) (string, error) {
 		return "", errors.New("内部转发错误, " + err.Error())
 	}
 	if strings.Contains(string(stringResp), "server") {
-		if operateType == models.ADD{
-			serviceNode.Join=true
+		if operateType == models.ADD {
+			serviceNode.Join = true
 		}
 		if operateType == models.REMOVE {
-			serviceNode.Join=false
+			serviceNode.Join = false
 		}
 		id, err := orm.Update(&serviceNode, "join")
 		if err != nil {
